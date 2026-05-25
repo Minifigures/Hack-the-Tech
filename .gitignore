@@ -88,3 +88,19 @@ htmlcov/
 04_courses/
 *_Materials/
 Course_Outlines/
+
+# ---- private hackathon / product docs (never push to public repo) ----
+DEMO_SCRIPT.md
+DEVPOST_SUBMISSION.md
+PRD.md
+TECHNICAL_ARCHITECTURE.md
+ARCHITECTURE.md
+docs/ASSUMPTIONS.md
+docs/PRD*.md
+docs/TECHNICAL_ARCHITECTURE*.md
+docs/DEMO_SCRIPT*.md
+docs/DEVPOST*.md
+docs/ROADMAP*.md
+docs/INTERNAL*.md
+NOTES.md
+TODO.md

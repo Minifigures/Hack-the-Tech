@@ -13,9 +13,9 @@ import sys
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode
 
-# Default to deterministic mock mode in serverless unless an API key is set.
-if not os.environ.get("ANTHROPIC_API_KEY"):
-    os.environ.setdefault("EVALFORGE_USE_MOCK", "always")
+# `settings.use_mock` already auto-detects mock mode when no provider key is
+# present. We deliberately don't force EVALFORGE_USE_MOCK=always here, because
+# that would override a Groq/Anthropic key the user set in Vercel env.
 
 # The Vercel filesystem is read-only except for /tmp.
 os.environ.setdefault("EVALFORGE_DB_URL", "sqlite:////tmp/evalforge.db")

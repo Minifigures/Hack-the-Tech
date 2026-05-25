@@ -5,7 +5,9 @@ import statistics
 from datetime import datetime
 from typing import Any
 
+from ..config import settings
 from ..guardrails.runner import run_guardrails, run_guardrails_on_raw
+from ..llm.client import mock_only_scope
 from ..models import (
     AnswerSchema,
     EvalAggregate,
@@ -166,7 +168,7 @@ def _aggregate(pipeline: Pipeline, rows: list[QuestionEvalRow], traces: list[Tra
     )
 
 
-def run_full_eval() -> EvalRunResult:
+def _run_full_eval_impl() -> EvalRunResult:
     items = load_golden()
     run_id = new_run_id()
     started_at = datetime.utcnow()
@@ -212,3 +214,22 @@ def run_full_eval() -> EvalRunResult:
         aggregates=aggregates,
         rows=rows,
     )
+
+
+def run_full_eval() -> EvalRunResult:
+    """Full eval batch wrapper.
+
+    On serverless deployments running against a free-tier provider (Groq 30
+    RPM, Vercel Hobby 60s function cap), a 50-call batch blows past one or
+    both limits. We force the mock LLM for the batch by default so the eval
+    finishes in under 10s and the deploy gate verdict stays deterministic.
+    Interactive /compare and /guardrails calls still honour the configured
+    provider, so the real-LLM showcase is unaffected.
+
+    Set EVALFORGE_BATCH_USE_MOCK=false on a Pro tier with a paid key to run
+    the full eval against the configured provider.
+    """
+    if settings.EVALFORGE_BATCH_USE_MOCK:
+        with mock_only_scope():
+            return _run_full_eval_impl()
+    return _run_full_eval_impl()

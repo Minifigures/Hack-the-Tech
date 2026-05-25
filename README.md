@@ -58,7 +58,7 @@ The mock LLM is just for the offline demo. Set `ANTHROPIC_API_KEY` and the engin
 5. /deploy-gate → Run deploy gate                # baseline FAIL (8 gates), engineered PASS
 ```
 
-Full walk-through in [DEMO_SCRIPT.md](./DEMO_SCRIPT.md).
+A scripted walk-through is kept privately and shared on demo day.
 
 ---
 
@@ -146,7 +146,7 @@ vercel.json          Function bundling + rewrite rule for /api/* → api/index.p
 requirements.txt     Python deps bundled into the Vercel function
 ```
 
-Full layout in [TECHNICAL_ARCHITECTURE.md](./TECHNICAL_ARCHITECTURE.md).
+(Architecture details kept in private design notes.)
 
 ---
 
@@ -220,8 +220,8 @@ EVALFORGE_DEFAULT_MODEL = claude-haiku-4-5-20251001
 > A separate thing is the **Claude Agent SDK** (`claude-agent-sdk`): a
 > framework on top of Claude that gives the model file/bash/web tools, a
 > managed tool loop, sessions, and hooks. EvalForge doesn't use it today but
-> it's the natural next surface to evaluate, see the use-case section in
-> [DEVPOST_SUBMISSION.md](./DEVPOST_SUBMISSION.md).
+> it's the natural next surface to evaluate (coding agents with CI, support
+> agents, research agents, compliance assistants).
 
 ### Persistent traces with Supabase Postgres
 
@@ -248,16 +248,6 @@ rebuilds on cold start in ~1ms. The Vercel filesystem is read-only outside
 AI/ML · Developer Tools & Productivity · Cybersecurity & Privacy · FinTech · Healthcare · Startup & Business Solutions
 
 EvalForge is a single tool that lands cleanly across all six because every track has the same underlying need: **proving** that an AI system is reliable, safe, cheap, and ready for production.
-
----
-
-## Documents
-
-- [PRD.md](./PRD.md) — goals, non-goals, user journeys, requirements
-- [TECHNICAL_ARCHITECTURE.md](./TECHNICAL_ARCHITECTURE.md) — modules, data model, sequence
-- [DEMO_SCRIPT.md](./DEMO_SCRIPT.md) — 3-minute walkthrough for judges
-- [DEVPOST_SUBMISSION.md](./DEVPOST_SUBMISSION.md) — copy-paste ready Devpost fields
-- [docs/ASSUMPTIONS.md](./docs/ASSUMPTIONS.md) — design assumptions and tradeoffs
 
 ---
 

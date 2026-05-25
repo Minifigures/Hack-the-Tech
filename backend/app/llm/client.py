@@ -8,6 +8,11 @@ Provider selection happens at call time based on environment:
 - `EVALFORGE_USE_MOCK=auto` (default) → real call if any key is set,
   otherwise mock
 
+For batch operations (eval runner, deploy gate) we also expose a
+context-managed `mock_only_scope()` that forces mock inside the block,
+because hitting a free-tier provider 50 times in one HTTP request exceeds
+both Vercel Hobby's 60s function timeout and Groq's 30 RPM rate limit.
+
 Adding a new provider is two functions: `_call_<provider>` and a branch in
 `chat`. Each provider returns a `ChatResult` so the rest of the pipeline
 (traces, cost tracking, guardrails) doesn't care which model produced the
@@ -16,11 +21,26 @@ answer.
 from __future__ import annotations
 
 import time
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Iterator
 
 from ..config import settings
 from . import mock
+
+
+_force_mock: ContextVar[bool] = ContextVar("_force_mock", default=False)
+
+
+@contextmanager
+def mock_only_scope() -> Iterator[None]:
+    """Force mock LLM inside this block. Used by the eval runner."""
+    token = _force_mock.set(True)
+    try:
+        yield
+    finally:
+        _force_mock.reset(token)
 
 # USD per 1M tokens (approximate; only used for cost-tracking display).
 # Groq is currently free to call but we record a notional price so the cost
@@ -132,8 +152,14 @@ def _call_groq(messages: list[dict[str, str]], structured: bool, model: str | No
 
 # ---------- public API ----------
 
-def chat(messages: list[dict[str, str]], *, structured: bool = False, model: str | None = None) -> ChatResult:
-    if settings.use_mock:
+def chat(
+    messages: list[dict[str, str]],
+    *,
+    structured: bool = False,
+    model: str | None = None,
+    force_mock: bool = False,
+) -> ChatResult:
+    if force_mock or _force_mock.get() or settings.use_mock:
         return _call_mock(messages, structured)
     provider = settings.active_provider
     try:

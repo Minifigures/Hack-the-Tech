@@ -49,6 +49,11 @@ class Settings(BaseSettings):
     EVALFORGE_USE_MOCK: Literal["auto", "always", "never"] = "auto"
     # Provider priority when EVALFORGE_USE_MOCK=auto: first non-empty key wins.
     EVALFORGE_PROVIDER_ORDER: str = "groq,anthropic"
+    # Force mock for batch evals so a 50-call run fits in Vercel's 60s Hobby
+    # cap and Groq's free-tier 30 RPM. Interactive /compare always honours
+    # the chosen provider. Set to "false" on Pro tier with a paid key to run
+    # the full eval against the real LLM.
+    EVALFORGE_BATCH_USE_MOCK: bool = True
 
     thresholds: Thresholds = Field(default_factory=Thresholds)
 
