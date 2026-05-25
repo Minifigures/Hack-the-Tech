@@ -1,0 +1,8 @@
+.next/
+node_modules/
+backend/.venv/
+.pytest_cache/
+tests/
+data/evalforge.db
+data/index.json
+tsconfig.tsbuildinfo

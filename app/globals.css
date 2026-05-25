@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background:
+    radial-gradient(60% 60% at 80% 0%, rgba(124, 58, 237, 0.15) 0%, rgba(0, 0, 0, 0) 60%),
+    radial-gradient(40% 40% at 0% 100%, rgba(34, 211, 238, 0.10) 0%, rgba(0, 0, 0, 0) 60%),
+    #0c1024;
+  color: #eceef2;
+}
+
+@layer components {
+  .panel {
+    @apply rounded-xl border border-ink-700/70 bg-ink-800/70 backdrop-blur-sm;
+  }
+  .panel-title {
+    @apply text-xs uppercase tracking-[0.18em] text-ink-300;
+  }
+  .badge-pass {
+    @apply inline-flex items-center gap-1 rounded-md bg-forge-green/15 px-2 py-0.5 text-xs font-medium text-forge-green;
+  }
+  .badge-fail {
+    @apply inline-flex items-center gap-1 rounded-md bg-forge-red/15 px-2 py-0.5 text-xs font-medium text-forge-red;
+  }
+  .badge-warn {
+    @apply inline-flex items-center gap-1 rounded-md bg-forge-amber/15 px-2 py-0.5 text-xs font-medium text-forge-amber;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-ink-700 bg-ink-800/60 px-2 py-0.5 text-[11px] font-medium text-ink-300;
+  }
+  .kbd {
+    @apply rounded-md border border-ink-700 bg-ink-900/80 px-1.5 py-0.5 font-mono text-[11px] text-ink-300;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-ink-700 bg-ink-800 px-4 py-2 text-sm font-medium text-ink-100 hover:border-forge-accent hover:bg-ink-700 disabled:cursor-not-allowed disabled:opacity-50 transition;
+  }
+  .btn-primary {
+    @apply bg-forge-accent border-forge-accent text-white hover:bg-forge-accent/80 hover:border-forge-accent/80;
+  }
+}
