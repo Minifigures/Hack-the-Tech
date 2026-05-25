@@ -22,7 +22,9 @@ Built for **Hack the Tech 2026**. Repo: <https://github.com/Minifigures/Hack-the
 
 ## Why this exists
 
-Most hackathon teams ship "AI that does X". We ship the **engineering surface** every AI startup eventually has to build:
+**EvalForge doesn't replace OpenAI or Anthropic. It sits between your app and whichever provider you picked.**
+
+The mistake people make is thinking "AI product = LLM API call." That's the easy part. The hard part is everything around it: did the model cite a real source, did it leak a customer's SSN, did the last prompt change break refusal behaviour, can you tell your auditor it's safe to ship. EvalForge is that layer.
 
 | Symptom in production | EvalForge fix |
 |---|---|
@@ -31,18 +33,29 @@ Most hackathon teams ship "AI that does X". We ship the **engineering surface** 
 | Prompt-injection leaks | Inline guardrail + trace evidence |
 | Cost balloons unnoticed | Per-question $ tracked in SQLite |
 | Latency P95 regressions | Span waterfall + threshold gate |
-| "Should we ship this?" | One PASS/FAIL pill |
+| "Should we ship this?" | One PASS/FAIL pill, backed by a Markdown audit report |
+| "Claude or GPT?" | Run both pipelines against the same golden set, compare gates |
+
+### Real-world use cases
+
+1. **Pre-deploy CI gate.** A developer changes a prompt or swaps a model, opens a PR, a GitHub Action runs `make eval`. If the engineered pipeline regresses on faithfulness, citation accuracy, refusal correctness, or PII leak count, the PR is blocked. "Tests must pass before merge", for AI behaviour.
+2. **Model and provider comparison.** Today the answer to "can we move from GPT-4o to Haiku to cut cost?" is vibes. With EvalForge it's a deploy-gate diff.
+3. **Prompt-regression catching.** Refusal compliance and structured-output validity catch the prompts that look better but quietly break safety, before customers see it.
+4. **Compliance audit artifact.** Healthcare and fintech teams have to prove the system refuses out-of-scope clinical or investment advice and doesn't leak PHI/PII. The per-question table + Markdown deploy report is exactly the artifact a regulator asks for.
+5. **Production observability.** When a customer reports a bad answer, you don't go "weird, can't repro". You go to `/traces`, find the trace_id from the request log, see exactly which chunks were retrieved, what the LLM returned, and which guardrails fired.
+
+The mock LLM is just for the offline demo. Set `ANTHROPIC_API_KEY` and the engineered pipeline talks to Claude directly. Swapping in OpenAI or Gemini is a 20-line change in `backend/app/llm/client.py`. **The eval framework, trace store, guardrails, and deploy gate are provider-agnostic.**
 
 ---
 
 ## Demo in 60 seconds
 
 ```
-1. open  http://localhost:3000           # the cockpit
-2. /compare → pick a healthcare preset   # baseline hallucinates, engineered cites
-3. /compare → pick the safety preset     # injection probe; engineered refuses
-4. /evals → Run full eval                # 25 questions × 2 pipelines, ~30s
-5. /deploy-gate → Run deploy gate        # baseline FAIL, engineered PASS
+1. open  https://evalforge-omega.vercel.app   # or localhost:3000
+2. /compare → click the healthcare preset chip   # baseline hallucinates, engineered cites
+3. /compare → click the safety preset chip       # injection probe; engineered refuses
+4. /evals → Run full eval                        # 25 questions × 2 pipelines, ~30s
+5. /deploy-gate → Run deploy gate                # baseline FAIL (8 gates), engineered PASS
 ```
 
 Full walk-through in [DEMO_SCRIPT.md](./DEMO_SCRIPT.md).
@@ -70,7 +83,7 @@ Full walk-through in [DEMO_SCRIPT.md](./DEMO_SCRIPT.md).
 
 - Python 3.11+
 - Node 20+
-- (Optional) `ANTHROPIC_API_KEY` in `.env` — without it we run in deterministic mock mode
+- (Optional) `ANTHROPIC_API_KEY` in `.env`, without it we run in deterministic mock mode
 
 ### Quick start
 
@@ -80,11 +93,8 @@ git clone https://github.com/Minifigures/Hack-the-Tech.git evalforge
 cd evalforge
 
 # bootstrap
-make install          # backend venv + frontend npm
+make install          # backend venv + npm install
 cp .env.example .env  # leave keys empty for mock mode
-
-# build the KB index + seed mock answers
-make seed
 
 # run backend + frontend (concurrent)
 make dev
