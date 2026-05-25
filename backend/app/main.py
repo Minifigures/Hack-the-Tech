@@ -36,7 +36,13 @@ def health() -> dict:
     return {
         "status": "ok",
         "mock_mode": settings.use_mock,
-        "default_model": settings.EVALFORGE_DEFAULT_MODEL,
+        "provider": settings.active_provider,
+        "default_model": (
+            settings.EVALFORGE_GROQ_MODEL
+            if settings.active_provider == "groq"
+            else settings.EVALFORGE_DEFAULT_MODEL
+        ),
+        "db": "postgres" if not settings.EVALFORGE_DB_URL.startswith("sqlite") else "sqlite",
         "kb_sources": sources_summary(),
     }
 
@@ -46,6 +52,11 @@ def config() -> dict:
     t = settings.thresholds
     return {
         "mock_mode": settings.use_mock,
-        "default_model": settings.EVALFORGE_DEFAULT_MODEL,
+        "provider": settings.active_provider,
+        "default_model": (
+            settings.EVALFORGE_GROQ_MODEL
+            if settings.active_provider == "groq"
+            else settings.EVALFORGE_DEFAULT_MODEL
+        ),
         "thresholds": t.model_dump(),
     }

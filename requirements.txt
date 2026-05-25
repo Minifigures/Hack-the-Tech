@@ -3,3 +3,5 @@ pydantic==2.10.4
 pydantic-settings==2.7.1
 sqlmodel==0.0.22
 anthropic==0.42.0
+groq==0.13.1
+psycopg2-binary==2.9.10

@@ -42,9 +42,13 @@ class Settings(BaseSettings):
     ANTHROPIC_API_KEY: str = ""
     OPENAI_API_KEY: str = ""
     GEMINI_API_KEY: str = ""
+    GROQ_API_KEY: str = ""
     EVALFORGE_DB_URL: str = f"sqlite:///{(DATA_DIR / 'evalforge.db').as_posix()}"
     EVALFORGE_DEFAULT_MODEL: str = "claude-haiku-4-5-20251001"
+    EVALFORGE_GROQ_MODEL: str = "llama-3.3-70b-versatile"
     EVALFORGE_USE_MOCK: Literal["auto", "always", "never"] = "auto"
+    # Provider priority when EVALFORGE_USE_MOCK=auto: first non-empty key wins.
+    EVALFORGE_PROVIDER_ORDER: str = "groq,anthropic"
 
     thresholds: Thresholds = Field(default_factory=Thresholds)
 
@@ -54,7 +58,18 @@ class Settings(BaseSettings):
             return True
         if self.EVALFORGE_USE_MOCK == "never":
             return False
-        return not self.ANTHROPIC_API_KEY
+        return not (self.GROQ_API_KEY or self.ANTHROPIC_API_KEY)
+
+    @property
+    def active_provider(self) -> str:
+        """Pick the first provider with a configured key, falling back to mock."""
+        order = [p.strip().lower() for p in self.EVALFORGE_PROVIDER_ORDER.split(",") if p.strip()]
+        for p in order:
+            if p == "groq" and self.GROQ_API_KEY:
+                return "groq"
+            if p == "anthropic" and self.ANTHROPIC_API_KEY:
+                return "anthropic"
+        return "mock"
 
 
 settings = Settings()

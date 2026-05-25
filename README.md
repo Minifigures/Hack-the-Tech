@@ -191,17 +191,55 @@ runs in **deterministic mock mode** so the demo works with zero LLM keys.
 vercel deploy --prod
 ```
 
-Optional env vars (set in the Vercel dashboard if you want real LLM calls):
+### Real-LLM mode (free)
 
-| Var | Notes |
-|---|---|
-| `ANTHROPIC_API_KEY` | If set, the engineered pipeline calls Claude. If unset, mock mode is forced on. |
-| `EVALFORGE_DEFAULT_MODEL` | Default `claude-haiku-4-5-20251001`. |
-| `EVALFORGE_USE_MOCK` | `auto` (default), `always`, or `never`. |
+Set one env var in the Vercel dashboard and the engineered pipeline starts
+calling a real model:
 
-The function's `EVALFORGE_DB_URL` and `EVALFORGE_INDEX_PATH` automatically
-point at `/tmp/` because the Vercel filesystem is read-only outside `/tmp`.
-The 78-chunk KB index rebuilds on cold start in ~1ms.
+| Var | What you get | Cost |
+|---|---|---|
+| `GROQ_API_KEY` | Llama 3.3 70B on Groq, OpenAI-compatible, sub-second | **Free**, no credit card. Sign up at <https://console.groq.com> |
+| `ANTHROPIC_API_KEY` | Claude Haiku 4.5 via the Anthropic SDK | $5 free credit on signup, then pay per token. Key from <https://console.anthropic.com/settings/keys> |
+
+If both are set, Groq wins (override with `EVALFORGE_PROVIDER_ORDER=anthropic,groq`).
+If neither is set, the mock LLM runs and the demo is fully deterministic.
+
+```
+EVALFORGE_USE_MOCK     = auto | always | never  (default: auto)
+EVALFORGE_PROVIDER_ORDER = groq,anthropic       (first set key wins)
+EVALFORGE_GROQ_MODEL   = llama-3.3-70b-versatile
+EVALFORGE_DEFAULT_MODEL = claude-haiku-4-5-20251001
+```
+
+> **What's the difference between an SDK and an API?**
+> The **API** is the protocol (HTTP endpoint at `api.anthropic.com`). An **SDK**
+> is the library in your language that wraps that API so you don't write raw
+> HTTP. EvalForge uses three SDKs: `anthropic` (Claude), `groq` (Groq cloud,
+> OpenAI-compatible), and a deterministic mock fallback.
+>
+> A separate thing is the **Claude Agent SDK** (`claude-agent-sdk`): a
+> framework on top of Claude that gives the model file/bash/web tools, a
+> managed tool loop, sessions, and hooks. EvalForge doesn't use it today but
+> it's the natural next surface to evaluate, see the use-case section in
+> [DEVPOST_SUBMISSION.md](./DEVPOST_SUBMISSION.md).
+
+### Persistent traces with Supabase Postgres
+
+By default the function writes traces to a SQLite file in `/tmp`, which is
+ephemeral on Vercel (cold starts wipe it). To persist runs across cold starts
+and across the team, set:
+
+```
+EVALFORGE_DB_URL = postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres
+```
+
+You can grab that string from your Supabase dashboard at
+**Settings → Database → Connection string → Transaction pooler**. The schema
+auto-creates on cold start via `SQLModel.metadata.create_all`.
+
+The function's `EVALFORGE_INDEX_PATH` already points at `/tmp` so the KB index
+rebuilds on cold start in ~1ms. The Vercel filesystem is read-only outside
+`/tmp`, that's why the DB env override matters.
 
 ---
 
