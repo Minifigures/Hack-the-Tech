@@ -4,7 +4,7 @@
     "api/index.py": {
       "maxDuration": 60,
       "memory": 1024,
-      "includeFiles": "{backend/**,data/kb/**,data/evals/**}"
+      "includeFiles": "{backend/app/**,data/kb/**,data/evals/golden.json}"
     }
   },
   "rewrites": [

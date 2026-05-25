@@ -1,8 +1,25 @@
+# private course materials — must never reach Vercel
+04_courses/
+*_Materials/
+Course_Outlines/
+
+# build artifacts (Vercel re-builds)
 .next/
 node_modules/
+
+# local-only
 backend/.venv/
 .pytest_cache/
 tests/
 data/evalforge.db
 data/index.json
 tsconfig.tsbuildinfo
+.git/
+.vercel/
+playwright-report/
+test-results/
+
+# editor / OS
+.DS_Store
+.idea/
+.vscode/

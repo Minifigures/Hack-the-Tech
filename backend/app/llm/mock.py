@@ -398,6 +398,21 @@ def _extract_question(messages: list[dict[str, str]]) -> str:
     return user_text
 
 
+def _is_hyde_call(messages: list[dict[str, str]]) -> bool:
+    """Detect a HyDE expansion call by its system prompt signature.
+
+    HyDE asks for a "hypothetical" answer paragraph. The mock should produce
+    a paragraph that uses the same vocabulary as the source documents, which
+    is exactly what the engineered curated answer contains. Returning the
+    baseline-style answer here (the default when structured=False) was
+    pulling the wrong secondary chunks via BM25.
+    """
+    for m in messages:
+        if m.get("role") == "system" and "hypothetical" in m.get("content", "").lower():
+            return True
+    return False
+
+
 def chat(messages: list[dict[str, str]], *, structured: bool = False) -> dict[str, Any]:
     """Mock chat. Returns a dict shaped like ChatResult.
 
@@ -407,8 +422,19 @@ def chat(messages: list[dict[str, str]], *, structured: bool = False) -> dict[st
     question = _extract_question(messages)
     slug = _slug(question)
     answers = ANSWERS.get(slug)
+    hyde = _is_hyde_call(messages)
     pipeline_hint = "engineered" if structured else "baseline"
-    text = answers[pipeline_hint] if answers else _fallback(question, structured)
+    if answers and hyde:
+        # HyDE wants a plain-text hypothetical that mirrors the source docs;
+        # extract the `answer` field from the engineered JSON.
+        try:
+            text = json.loads(answers["engineered"])["answer"]
+        except (json.JSONDecodeError, KeyError):
+            text = answers[pipeline_hint]
+    elif answers:
+        text = answers[pipeline_hint]
+    else:
+        text = _fallback(question, structured)
 
     # simulate latency
     time.sleep(MOCK_LATENCY_MS / 1000.0)

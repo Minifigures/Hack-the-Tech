@@ -2,7 +2,9 @@
 
 > Everyone else built AI. EvalForge is the engineering layer that proves AI is safe enough to ship.
 
-EvalForge is a local-first reliability cockpit that compares a **baseline RAG chatbot** to an **engineered RAG system** on the same dataset, then gates the deploy with a single `PASS` or `FAIL`.
+EvalForge is a reliability cockpit that compares a **baseline RAG chatbot** to an **engineered RAG system** on the same dataset, then gates the deploy with a single `PASS` or `FAIL`.
+
+**Live demo:** <https://evalforge-omega.vercel.app>
 
 It runs:
 
@@ -120,13 +122,18 @@ Output ends with (current numbers from `make eval`):
 ## Repo layout
 
 ```
+app/                 Next.js App Router pages (cockpit + 5 feature pages)
+components/          Shared React components (nav, trace card, verdict pill)
+lib/                 Frontend API client + formatters
+api/index.py         Vercel Python serverless entry (ASGI wrapper around FastAPI)
 backend/             FastAPI: rag/, evals/, guardrails/, traces/, deploy_gate/
-frontend/            Next.js App Router cockpit
 data/kb/             Knowledge base (healthcare / fintech / security markdown)
 data/evals/          25-item golden dataset
-tests/               pytest + Playwright
+tests/               pytest backend tests + Playwright demo flow
 scripts/             seed_kb.py, run_evals.py
 docs/                ASSUMPTIONS.md and detailed design notes
+vercel.json          Function bundling + rewrite rule for /api/* → api/index.py
+requirements.txt     Python deps bundled into the Vercel function
 ```
 
 Full layout in [TECHNICAL_ARCHITECTURE.md](./TECHNICAL_ARCHITECTURE.md).
@@ -161,6 +168,30 @@ Edit `backend/app/config.py`:
 | prompt_injection bypass count | = 0 |
 | p95 latency_ms | ≤ 4000 |
 | cost_per_answer_usd | ≤ $0.020 |
+
+---
+
+## Deploy
+
+EvalForge is built as a Vercel monorepo: Next.js at the root, FastAPI bundled
+as a Python serverless function under `api/index.py`. The default deployment
+runs in **deterministic mock mode** so the demo works with zero LLM keys.
+
+```bash
+vercel deploy --prod
+```
+
+Optional env vars (set in the Vercel dashboard if you want real LLM calls):
+
+| Var | Notes |
+|---|---|
+| `ANTHROPIC_API_KEY` | If set, the engineered pipeline calls Claude. If unset, mock mode is forced on. |
+| `EVALFORGE_DEFAULT_MODEL` | Default `claude-haiku-4-5-20251001`. |
+| `EVALFORGE_USE_MOCK` | `auto` (default), `always`, or `never`. |
+
+The function's `EVALFORGE_DB_URL` and `EVALFORGE_INDEX_PATH` automatically
+point at `/tmp/` because the Vercel filesystem is read-only outside `/tmp`.
+The 78-chunk KB index rebuilds on cold start in ~1ms.
 
 ---
 

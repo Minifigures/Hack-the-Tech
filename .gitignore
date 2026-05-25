@@ -1,50 +1,90 @@
-# env
+# ---- secrets (NEVER commit) ----
 .env
-.env.local
-*.env
+.env.*
 !.env.example
+*.env
+*.pem
+*.key
+*.p12
+*.pfx
+*.cer
+*.crt
+.npmrc.local
+.netrc
+secrets/
+credentials.json
+service-account*.json
+*credentials*
+.aws/
+.ssh/
+.gnupg/
+.vault-token
 
-# python
+# ---- platform / hosting ----
+.vercel
+.vercel/
+.netlify
+.firebase/
+.terraform/
+
+# ---- python ----
 __pycache__/
 *.pyc
+*.pyo
 .venv/
 venv/
+env/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 *.egg-info/
+.tox/
 
-# node
+# ---- node / next ----
 node_modules/
 .next/
 out/
 dist/
 .turbo/
+.parcel-cache/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+.pnpm-store/
+.cache/
 
-# data — keep dataset + KB, ignore generated db + index
+# ---- typescript ----
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ---- generated data (keep dataset + KB) ----
 data/evalforge.db
 data/evalforge.db-journal
+data/evalforge*.db*
 data/index.json
 
-# editor / OS
+# ---- editor / OS ----
 .DS_Store
+Thumbs.db
 .vscode/
 .idea/
 *.swp
+*.swo
 
-# playwright
+# ---- playwright / tests ----
 playwright-report/
 test-results/
 playwright/.cache/
 
-# misc
+# ---- misc ----
 *.log
 coverage/
 .coverage
 htmlcov/
-.vercel
-tsconfig.tsbuildinfo
+.history/
+
+# ---- private course materials (course-shared content; not for public repo) ----
+04_courses/
+*_Materials/
+Course_Outlines/
